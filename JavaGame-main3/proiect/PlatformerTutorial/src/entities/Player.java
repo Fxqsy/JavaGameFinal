@@ -7,7 +7,9 @@ import static utilz.HelpMethods.*;
 import java.awt.*;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.util.ArrayList;
 
+import Objects.Projectile;
 import gamestates.Playing;
 import main.Game;
 import utilz.LoadSave;
@@ -39,6 +41,7 @@ public class Player extends Entity {
 	private int healthBarXStart = (int) (34 * Game.SCALE);
 	private int healthBarYStart = (int) (14 * Game.SCALE);
 
+	private boolean facingRight = true;
 
 	private int healthWidth = healthBarWidth;
 
@@ -53,6 +56,9 @@ public class Player extends Entity {
 	private Playing playing;
 
 	private int tileY=0;
+
+	private ArrayList<Projectile> spells = new ArrayList<>();
+
 
 
 	public Player(float x, float y, int width, int height, Playing playing) {
@@ -105,6 +111,13 @@ public class Player extends Entity {
 		setAnimation();
 	}
 
+	public void shootProjectile() {
+		int dir = isFacingRight() ? 1 : -1;
+		int projectileX =(int) (hitbox.x + (dir == 1 ? hitbox.width / 2 -25 : -hitbox.width / 2));
+		int projectileY = (int) (hitbox.y + height / 3);
+		spells.add(new Projectile(projectileX, projectileY, dir));
+	}
+
 	private void checkSpikesTouched() {
 		playing.checkSpikesTouched(this);
 	}
@@ -120,6 +133,28 @@ public class Player extends Entity {
 		playing.checkEnemyHit(attackBox);
 		playing.checkObjectHit(attackBox);
 
+	}
+
+	public void updateSpells() {
+		for (Projectile s : spells) {
+			if (s.isActive()) {
+				s.updatePos();
+			}
+		}
+	}
+
+	public void drawSpell(Graphics g, int xLvlOffset) {
+
+		ArrayList<Projectile> spellsToDraw = new ArrayList<>(spells);
+
+		for (Projectile p : spellsToDraw) {
+			if (p.isActive()) {
+				g.drawImage(LoadSave.GetSpriteAtlas(LoadSave.CANNON_BALL),
+						(int) (p.getHitbox().x - xLvlOffset),
+						(int) (p.getHitbox().y -30),
+						100, 100, null);
+			}
+		}
 	}
 
 	private void updateAttackBox() {
@@ -307,6 +342,7 @@ public class Player extends Entity {
 		this.lvlData = lvlData;
 		if (!IsEntityOnFloor(hitbox, lvlData))
 			inAir = true;
+		spells.clear();
 
 	}
 	public void activateJumpBoost(int durationSeconds) {
@@ -332,6 +368,12 @@ public class Player extends Entity {
 		this.right = right;
 	}
 
+	public boolean isFacingRight(){
+		return facingRight;
+	}
+
+
+
 	public void setJump(boolean jump) {
 		this.jump = jump;
 	}
@@ -356,5 +398,17 @@ public class Player extends Entity {
 
 	public int getTileY(){
 		return tileY;
+	}
+
+	public ArrayList<Projectile> getSpells() {
+		return spells;
+	}
+
+	public void setFacingRight(boolean b) {
+		this.facingRight = b;
+	}
+
+	public void clearSpells() {
+		spells.clear();
 	}
 }

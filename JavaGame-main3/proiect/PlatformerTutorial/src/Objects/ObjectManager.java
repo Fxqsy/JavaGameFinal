@@ -4,8 +4,11 @@ import java.awt.Graphics;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Iterator;
 
+import entities.Enemy;
 import entities.Player;
+import entities.Skelly;
 import gamestates.Playing;
 import inputs.KeyboardInputs;
 import levels.Level;
@@ -55,6 +58,8 @@ public class ObjectManager {
             }
     }
 
+
+
     public void applyEffectToPlayer(Potion p) {
         if (p.getObjType() == RED_POTION)
             playing.getPlayer().changeHealth(RED_POTION_VALUE);
@@ -101,7 +106,7 @@ public class ObjectManager {
 
         cannonImgs = new BufferedImage[7];
         BufferedImage temp = LoadSave.GetSpriteAtlas(LoadSave.CANNON_ATLAS);
-        
+
         for(int i=0; i<cannonImgs.length;i++){
             cannonImgs[i] = temp.getSubimage(i*40,0,40,26);
         }
@@ -119,6 +124,7 @@ public class ObjectManager {
         updateCannons(lvlData, player);
 
         updateProjectiles(lvlData,player);
+
     }
 
     private void updateProjectiles(int[][] lvlData, Player player) {
@@ -132,6 +138,42 @@ public class ObjectManager {
                 else if(IsProjectileHittingLevel(p,lvlData)){
                     p.setActive(false);
                 }
+            }
+        }
+    }
+
+    public void updateSpells(int[][] lvlData) {
+        ArrayList<Projectile> spells = playing.getPlayer().getSpells();
+        ArrayList<Skelly> enemies = playing.getLevelManager().getCurrentLevel().getSkellies();
+
+        Iterator<Projectile> spellIterator = spells.iterator();
+        while (spellIterator.hasNext()) {
+            Projectile p = spellIterator.next();
+
+            if (!p.isActive()) {
+                spellIterator.remove();
+                continue;
+            }
+            p.updatePos();
+
+            boolean hitEnemy = false;
+            Iterator<Skelly> enemyIterator = enemies.iterator();
+            while (enemyIterator.hasNext()) {
+                Skelly enemy = enemyIterator.next();
+                if (enemy.isActive() && p.getHitbox().intersects(enemy.getHitbox())) {
+                    enemy.hurt(25);
+                    hitEnemy = true;
+                    break;
+                }
+            }
+
+//            if (hitEnemy) {
+//                playing.getParticleManager().createHitEffect(spell.getHitbox().getCenterX(),
+//                        spell.getHitbox().getCenterY());
+//            }
+            if (hitEnemy || IsProjectileHittingLevel(p, lvlData)) {
+                spellIterator.remove();
+
             }
         }
     }
@@ -237,8 +279,7 @@ public class ObjectManager {
             }
     }
 
-    public void resetAllObjects()
-    {
+    public void resetAllObjects() {
         loadObjects(playing.getLevelManager().getCurrentLevel());
 
         for (Potion p : potions)

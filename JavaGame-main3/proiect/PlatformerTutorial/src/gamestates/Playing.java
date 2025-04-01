@@ -9,6 +9,7 @@ import java.util.Random;
 
 import Objects.ObjectManager;
 import Objects.Projectile;
+import entities.Enemy;
 import entities.EnemyManager;
 import entities.Player;
 import levels.LevelManager;
@@ -21,6 +22,7 @@ import static utilz.Constants.Environment.*;
 
 public class Playing extends State implements Statemethods {
 	private Player player;
+	private Enemy enemy;
 	private LevelManager levelManager;
 	private EnemyManager enemyManager;
 	private ObjectManager objectManager;
@@ -46,7 +48,6 @@ public class Playing extends State implements Statemethods {
 		initClasses();
 
 		backgroundImg = LoadSave.GetSpriteAtlas(LoadSave.PLAYING_BG_IMG);
-//		cloudImg = LoadSave.GetSpriteAtlas(LoadSave.CLOUD);
 		smallCloudImg = LoadSave.GetSpriteAtlas(LoadSave.SMALL_CLOUD);
 		smallCloudsPos = new int[8];
 		for(int i=0;i<smallCloudsPos.length;i++)
@@ -98,7 +99,11 @@ public class Playing extends State implements Statemethods {
 			levelManager.update();
 			objectManager.update(levelManager.getCurrentLevel().getLevelData(), player);
 			player.update();
+			player.updateSpells();
 			enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player);
+//			objectManager.checkSpellsHit();
+			objectManager.updateSpells(levelManager.getCurrentLevel().getLevelData());
+
 			checkClosetoBorder();
 		}
 
@@ -131,6 +136,7 @@ public class Playing extends State implements Statemethods {
 		player.render(g, xLvlOffset);
 		enemyManager.draw(g, xLvlOffset);
 		objectManager.draw(g,xLvlOffset);
+		player.drawSpell(g,xLvlOffset);
 
 		if(paused){
 			g.setColor(new Color(0,0,0,200));
@@ -157,6 +163,7 @@ public class Playing extends State implements Statemethods {
 		paused = false;
 		lvlCompleted = false;
 		player.resetAll();
+		player.clearSpells();
 		resetJumpBoost();
 		enemyManager.resetAllEnemies();
 		objectManager.resetAllObjects();
@@ -191,9 +198,11 @@ public class Playing extends State implements Statemethods {
 		else
 			switch (e.getKeyCode()) {
 			case KeyEvent.VK_A:
+				player.setFacingRight(false);
 				player.setLeft(true);
 				break;
 			case KeyEvent.VK_D:
+				player.setFacingRight(true);
 				player.setRight(true);
 				break;
 			case KeyEvent.VK_W:
@@ -202,6 +211,9 @@ public class Playing extends State implements Statemethods {
 				break;
 			case KeyEvent.VK_ESCAPE:
 				paused = !paused;
+				break;
+			case KeyEvent.VK_M:
+				player.shootProjectile();
 				break;
 			}
 	}
