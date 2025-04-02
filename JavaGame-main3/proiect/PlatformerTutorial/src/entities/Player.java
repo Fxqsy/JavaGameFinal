@@ -210,7 +210,7 @@ public class Player extends Entity {
 		if (aniTick >= ANI_SPEED_CHAR) {
 			aniTick = 0;
 			aniIndex++;
-			System.out.println("aniIndex: " + aniIndex + " | max: " + GetSpriteAmount(state));
+//			System.out.println("aniIndex: " + aniIndex + " | max: " + GetSpriteAmount(state));
 			if (aniIndex >= GetSpriteAmount(state)) {
 				aniIndex = 0;
 				attacking = false;
@@ -402,7 +402,7 @@ public class Player extends Entity {
 	}
 	public void setShooting(boolean shooting){
 		this.shooting = shooting;
-		System.out.println("Shooting set to: " + shooting);
+//		System.out.println("Shooting set to: " + shooting);
 	}
 
 	public void setLeft(boolean left) {
