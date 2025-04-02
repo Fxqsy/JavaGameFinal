@@ -213,7 +213,11 @@ public class Playing extends State implements Statemethods {
 				paused = !paused;
 				break;
 			case KeyEvent.VK_M:
-				player.shootProjectile();
+				if(!player.isShooting()){
+					player.setShooting(true);
+					player.shootProjectile();
+				}
+
 				break;
 			}
 	}
@@ -231,6 +235,8 @@ public class Playing extends State implements Statemethods {
 			case KeyEvent.VK_W:
 			case KeyEvent.VK_SPACE:
 				player.setJump(false);
+			case KeyEvent.VK_M:
+				player.setShooting(false);
 				break;
 			}
 

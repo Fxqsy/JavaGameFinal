@@ -26,6 +26,11 @@ public class Projectile {
         hitbox.x += dir * SPEED;
     }
 
+
+    public void updatePosSpells(){
+        hitbox.x += dir * SPEED*1.5f;
+    }
+
     public void setPos(int x,int y){
         hitbox.x = x;
         hitbox.y = y;

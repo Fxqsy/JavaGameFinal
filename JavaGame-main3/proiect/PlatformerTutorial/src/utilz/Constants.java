@@ -171,7 +171,7 @@ public class Constants {
 
 	public static class PlayerConstants {
 		public static final int IDLE = 0;
-		public static final int WALK = 1;
+		public static final int SHOOT_PROJ = 1;
 		public static final int RUNNING = 2;
 		public static final int FALLING= 3;
 		public static final int JUMP = 4;
@@ -192,6 +192,8 @@ public class Constants {
 				case JUMP:
 				case FALLING:
 					return 6;
+				case SHOOT_PROJ:
+					return 3;
 				default:
 					return 1;
 			}

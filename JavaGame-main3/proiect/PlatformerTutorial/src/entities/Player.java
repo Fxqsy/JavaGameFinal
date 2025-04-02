@@ -17,7 +17,7 @@ import utilz.LoadSave;
 public class Player extends Entity {
 	private BufferedImage[][] animations;
 
-	private boolean moving = false, attacking = false;
+	private boolean moving = false, attacking = false, shooting = false;
 	private boolean left, right, jump;
 	private int[][] lvlData;
 	private float xDrawOffset = 9 * Game.SCALE;
@@ -59,7 +59,8 @@ public class Player extends Entity {
 
 	private ArrayList<Projectile> spells = new ArrayList<>();
 
-
+	private long lastShotTime;
+	private static final long SHOT_COOLDOWN = 500;
 
 	public Player(float x, float y, int width, int height, Playing playing) {
 		super(x, y, width, height);
@@ -107,15 +108,29 @@ public class Player extends Entity {
 		}
 		if(attacking)
 			checkAttack();
+
+		if(state == SHOOT_PROJ){
+			finishShooting();
+		}
+
 		updateAnimationTick();
 		setAnimation();
 	}
 
 	public void shootProjectile() {
-		int dir = isFacingRight() ? 1 : -1;
-		int projectileX =(int) (hitbox.x + (dir == 1 ? hitbox.width / 2 -25 : -hitbox.width / 2));
-		int projectileY = (int) (hitbox.y + height / 3);
-		spells.add(new Projectile(projectileX, projectileY, dir));
+		long currentTime = System.currentTimeMillis();
+
+		if (!shooting && (currentTime - lastShotTime >= SHOT_COOLDOWN)) {
+			shooting = true;
+			lastShotTime = currentTime;
+
+			state=SHOOT_PROJ;
+
+			int dir = isFacingRight() ? 1 : -1;
+			int projectileX = (int) (hitbox.x + (dir == 1 ? hitbox.width / 2 - 25 : -hitbox.width / 2));
+			int projectileY = (int) (hitbox.y + height / 3);
+			spells.add(new Projectile(projectileX, projectileY, dir));
+		}
 	}
 
 	private void checkSpikesTouched() {
@@ -138,7 +153,7 @@ public class Player extends Entity {
 	public void updateSpells() {
 		for (Projectile s : spells) {
 			if (s.isActive()) {
-				s.updatePos();
+				s.updatePosSpells();
 			}
 		}
 	}
@@ -146,13 +161,13 @@ public class Player extends Entity {
 	public void drawSpell(Graphics g, int xLvlOffset) {
 
 		ArrayList<Projectile> spellsToDraw = new ArrayList<>(spells);
-
+		int dir = isFacingRight() ? 1 : -1;
 		for (Projectile p : spellsToDraw) {
 			if (p.isActive()) {
-				g.drawImage(LoadSave.GetSpriteAtlas(LoadSave.CANNON_BALL),
+				g.drawImage(LoadSave.GetSpriteAtlas(LoadSave.FIREBALL),
 						(int) (p.getHitbox().x - xLvlOffset),
 						(int) (p.getHitbox().y -30),
-						100, 100, null);
+						50*dir, 50, null);
 			}
 		}
 	}
@@ -195,38 +210,64 @@ public class Player extends Entity {
 		if (aniTick >= ANI_SPEED_CHAR) {
 			aniTick = 0;
 			aniIndex++;
+			System.out.println("aniIndex: " + aniIndex + " | max: " + GetSpriteAmount(state));
 			if (aniIndex >= GetSpriteAmount(state)) {
 				aniIndex = 0;
 				attacking = false;
 				attackChecked = false;
+				shooting = false;
 			}
-
+			if (state == SHOOT_PROJ && aniIndex == 2 && aniTick == 0) {
+				shootProjectile();
+				setShooting(false);
+				state= IDLE;
+			}
 		}
 
+
 	}
+
+	public void finishShooting() {
+		if (state == SHOOT_PROJ && aniIndex >= GetSpriteAmount(SHOOT_PROJ) - 1) {
+			shooting = false;
+		}
+	}
+
 
 	private void setAnimation() {
 		int startAni = state;
 
-		if (moving)
-			state = RUNNING;
-		else
-			state = IDLE;
-
-		if (inAir) {
-			if (airSpeed < 0)
-				state = JUMP;
-			else
-				state = FALLING;
-		}
-
-		if (attacking){
-			state = ATTACK_1;
-			if(startAni != ATTACK_1){
-				aniIndex = 3;
+		if (shooting) {
+			state = SHOOT_PROJ;
+			if(startAni != SHOOT_PROJ) {
+				aniIndex = 0;
 				aniTick = 0;
 				return;
 			}
+		}
+
+		if(state!=SHOOT_PROJ) {
+			if (moving)
+				state = RUNNING;
+			else
+				state = IDLE;
+
+			if (inAir) {
+				if (airSpeed < 0)
+					state = JUMP;
+				else
+					state = FALLING;
+			}
+
+			if (attacking) {
+				state = ATTACK_1;
+				if (startAni != ATTACK_1) {
+					aniIndex = 3;
+					aniTick = 0;
+					return;
+				}
+			}
+
 		}
 
 
@@ -359,6 +400,10 @@ public class Player extends Entity {
 	public void setAttacking(boolean attacking) {
 		this.attacking = attacking;
 	}
+	public void setShooting(boolean shooting){
+		this.shooting = shooting;
+		System.out.println("Shooting set to: " + shooting);
+	}
 
 	public void setLeft(boolean left) {
 		this.left = left;
@@ -382,7 +427,9 @@ public class Player extends Entity {
 		resetDirBooleans();
 		inAir = false;
 		attacking = false;
+		attackChecked = false;
 		moving = false;
+		shooting = false;
 		state = IDLE;
 		currentHealth = maxHealth;
 
@@ -410,5 +457,9 @@ public class Player extends Entity {
 
 	public void clearSpells() {
 		spells.clear();
+	}
+
+	public boolean isShooting() {
+		return shooting;
 	}
 }
