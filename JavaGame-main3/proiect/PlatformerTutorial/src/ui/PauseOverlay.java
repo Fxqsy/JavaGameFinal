@@ -94,6 +94,8 @@ public class PauseOverlay {
 
         if (isIn(e, menuB)) {
             if (menuB.isMousePressed()) {
+                playing.resetAll(); // daca vreau sa
+                                    // se reseteze tot nivelul cand vin din menu
                 playing.setGameState(Gamestate.MENU);
                 playing.unpauseGame();
             }

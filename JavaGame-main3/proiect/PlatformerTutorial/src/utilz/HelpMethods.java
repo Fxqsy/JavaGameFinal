@@ -182,17 +182,43 @@ public class HelpMethods {
 		return true;
 	}
 
+//
+//	public static boolean IsSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int yTile) {
+//		int firstXTile =(int)firstHitbox.x / Game.TILES_SIZE;
+//		int secondXTile =(int)secondHitbox.x / Game.TILES_SIZE;
+//
+//		if(firstXTile > secondXTile)
+//			return IsAllTileWalkable(secondXTile, firstXTile, yTile, lvlData);
+//		else
+//			return IsAllTileWalkable(firstXTile, secondXTile, yTile, lvlData);
+//
+//	}
 
-	public static boolean IsSightClear(int[][] lvlData, Rectangle2D.Float firstHitbox, Rectangle2D.Float secondHitbox, int yTile) {
-		int firstXTile =(int)firstHitbox.x / Game.TILES_SIZE;
-		int secondXTile =(int)secondHitbox.x / Game.TILES_SIZE;
+	public static boolean IsSightClear(int[][] lvlData, Rectangle2D.Float enemyBox, Rectangle2D.Float playerBox, int yTile) {
+		int firstXTile = (int) (enemyBox.x / Game.TILES_SIZE);
 
-		if(firstXTile > secondXTile)
-			return IsAllTileWalkable(secondXTile, firstXTile, yTile, lvlData);
+		int secondXTile;
+		if (IsSolid(playerBox.x, playerBox.y + playerBox.height + 1, lvlData))
+			secondXTile = (int) (playerBox.x / Game.TILES_SIZE);
 		else
-			return IsAllTileWalkable(firstXTile, secondXTile, yTile, lvlData);
+			secondXTile = (int) ((playerBox.x + playerBox.width) / Game.TILES_SIZE);
 
+		if (firstXTile > secondXTile)
+			return IsAllTilesWalkable(secondXTile, firstXTile, yTile, lvlData);
+		else
+			return IsAllTilesWalkable(firstXTile, secondXTile, yTile, lvlData);
 	}
+
+	public static boolean IsAllTilesWalkable(int xStart, int xEnd, int y, int[][] lvlData) {
+		if (IsAllTilesClear(xStart, xEnd, y, lvlData))
+			for (int i = 0; i < xEnd - xStart; i++) {
+				if (!IsTileSolid(xStart + i, y + 1, lvlData))
+					return false;
+			}
+		return true;
+	}
+
+	//
 
 	public static int[][] GetLevelData(BufferedImage img) {
 

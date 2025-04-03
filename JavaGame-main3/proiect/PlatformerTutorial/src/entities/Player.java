@@ -43,7 +43,7 @@ public class Player extends Entity {
 	private int healthBarYStart = (int) (14 * Game.SCALE);
 
 	private int powerBarWidth = (int) (104 * Game.SCALE);
-	private int powerBarHeight = (int) (2 * Game.SCALE);
+	private int powerBarHeight = (int) (3 * Game.SCALE);
 	private int powerBarXStart = (int) (44 * Game.SCALE);
 	private int powerBarYStart = (int) (34 * Game.SCALE);
 	private int powerWidth = powerBarWidth;
@@ -249,11 +249,11 @@ public class Player extends Entity {
 		if(powerValue<=25)
 			g.setColor(new Color(255, 255, 255,200));
 		else if(powerValue <=50)
-			g.setColor(new Color(255, 148, 103, 174));
+			g.setColor(new Color(42, 66, 110, 255));
 		else if(powerValue <=75)
-			g.setColor(new Color(255, 66, 66, 152));
+			g.setColor(new Color(65, 98, 161, 255));
 		else
-			g.setColor(new Color(255, 0, 0, 255));
+			g.setColor(new Color(54, 108, 214, 255));
 
 		g.fillRect(powerBarXStart + statusBarX, powerBarYStart + statusBarY, powerWidth, powerBarHeight);
 	}
@@ -489,6 +489,7 @@ public class Player extends Entity {
 		attacking = false;
 		attackChecked = false;
 		moving = false;
+		airSpeed = 0f; //BUG
 		shooting = false;
 		state = IDLE;
 		currentHealth = maxHealth;

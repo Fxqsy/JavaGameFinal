@@ -1,6 +1,7 @@
 package main;
 
 import java.awt.Graphics;
+import java.sql.DatabaseMetaData;
 
 import audio.AudioPlayer;
 import gamestates.GameOptions;
@@ -17,6 +18,7 @@ public class Game implements Runnable {
 	private final int FPS_SET = 120;
 	private final int UPS_SET = 200;
 
+
 	private Playing playing;
 	private Menu menu;
 	private GameOptions gameOptions;
@@ -31,6 +33,7 @@ public class Game implements Runnable {
 	public final static int GAME_WIDTH = TILES_SIZE * TILES_IN_WIDTH;
 	public final static int GAME_HEIGHT = TILES_SIZE * TILES_IN_HEIGHT;
 
+	
 	public Game() {
 		initClasses();
 

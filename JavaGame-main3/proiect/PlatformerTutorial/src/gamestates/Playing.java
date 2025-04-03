@@ -9,7 +9,6 @@ import java.awt.image.BufferedImage;
 import java.util.Random;
 
 import Objects.ObjectManager;
-import Objects.Projectile;
 import entities.Enemy;
 import entities.EnemyManager;
 import entities.Player;
@@ -148,7 +147,6 @@ public class Playing extends State implements Statemethods {
 		Graphics2D g2d = (Graphics2D) g;
 		AffineTransform originalTransform = g2d.getTransform();
 
-		// Apply zoom transformation centered on player
 		if (currentZoom != 1.0f) {
 			int playerScreenX = (int)(player.getHitbox().x - xLvlOffset);
 			int playerScreenY = (int)player.getHitbox().y;
@@ -185,8 +183,7 @@ public class Playing extends State implements Statemethods {
 	}
 
 	private void drawClouds(Graphics g) {
-//		for(int i=0;i<3;i++)
-//			g.drawImage(cloudImg, i *CLOUD_WIDTH - (int)(xLvlOffset * 0.3), (int)(50* Game.SCALE), CLOUD_WIDTH, CLOUD_HEIGHT, null);
+
 		for(int i=0;i<smallCloudsPos.length;i++)
 			g.drawImage(smallCloudImg, SMALL_CLOUD_WIDTH * 4 * i- (int)(xLvlOffset * 0.7), smallCloudsPos[i], SMALL_CLOUD_WIDTH, SMALL_CLOUD_HEIGHT, null);
 	}
