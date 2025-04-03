@@ -42,6 +42,14 @@ public class Player extends Entity {
 	private int healthBarXStart = (int) (34 * Game.SCALE);
 	private int healthBarYStart = (int) (14 * Game.SCALE);
 
+	private int powerBarWidth = (int) (104 * Game.SCALE);
+	private int powerBarHeight = (int) (2 * Game.SCALE);
+	private int powerBarXStart = (int) (44 * Game.SCALE);
+	private int powerBarYStart = (int) (34 * Game.SCALE);
+	private int powerWidth = powerBarWidth;
+	private int powerMaxValue = 100;
+	private int powerValue = powerMaxValue;
+
 	private boolean facingRight = true;
 
 	private int healthWidth = healthBarWidth;
@@ -60,13 +68,15 @@ public class Player extends Entity {
 
 	private ArrayList<Projectile> spells = new ArrayList<>();
 
-	private long lastShotTime;
-	private static final long SHOT_COOLDOWN = 500;
+	private int powerGrowSpeed = 10;
+	private int powerGrowTick;
 
 	public Player(float x, float y, int width, int height, Playing playing) {
 		super(x, y, width, height);
 		this.playing = playing;
 		this.state = IDLE;
+		this.aniIndex = 0;
+		this.aniTick = 0;
 		this.maxHealth = 10;
 		this.currentHealth = maxHealth;
 		this.walkSpeed = Game.SCALE * 1.0f;
@@ -89,7 +99,7 @@ public class Player extends Entity {
 
 	public void update() {
 		updateHealthBar();
-
+		updatePowerBar();
 		if(currentHealth <= 0){
 			if(state != DEAD){
 				state = DEAD;
@@ -137,11 +147,11 @@ public class Player extends Entity {
 	public void shootProjectile() {
 		long currentTime = System.currentTimeMillis();
 
-		if (!shooting && (currentTime - lastShotTime >= SHOT_COOLDOWN)) {
+		// Check if not already shooting, cooldown has passed, and has enough power
+		if (!shooting && powerValue >= 90) {
 			shooting = true;
-			lastShotTime = currentTime;
-
-			state=SHOOT_PROJ;
+			changePower(-100); // Deduct 60 from power
+			state = SHOOT_PROJ;
 
 			int dir = isFacingRight() ? 1 : -1;
 			int projectileX = (int) (hitbox.x + (dir == 1 ? hitbox.width / 2 - 60 : -hitbox.width / 2 + 60));
@@ -169,11 +179,12 @@ public class Player extends Entity {
 	}
 
 	public void updateSpells() {
-		for (Projectile s : spells) {
-			if (s.isActive()) {
-				s.updatePosSpells();
+
+			for (Projectile s : spells) {
+				if (s.isActive()) {
+					s.updatePosSpells();
+				}
 			}
-		}
 	}
 
 	public void drawSpell(Graphics g, int xLvlOffset) {
@@ -203,6 +214,16 @@ public class Player extends Entity {
 		healthWidth = (int) (healthBarWidth * currentHealth / (float)( maxHealth));
 	}
 
+	private void updatePowerBar(){
+		powerWidth = (int)(powerBarWidth * powerValue / (float)(powerMaxValue));
+
+		powerGrowTick++;
+		if(powerGrowTick >= powerGrowSpeed) {
+			powerGrowTick = 0;
+			changePower(2);
+		}
+	}
+
 	public void render(Graphics g, int lvlOffset) {
 		g.drawImage(animations[state][aniIndex],
 				(int) (hitbox.x - xDrawOffset) - lvlOffset + flipX ,
@@ -218,8 +239,23 @@ public class Player extends Entity {
 
 	private void drawUI(Graphics g) {
 		g.drawImage(statusBarImg, statusBarX, statusBarY, statusBarWidth, statusBarHeight, null);
-		g.setColor(Color.RED);
+
+		if(currentHealth >maxHealth/2)
+			g.setColor(Color.RED);
+		else
+			g.setColor(Color.ORANGE);
 		g.fillRect(healthBarXStart + statusBarX, healthBarYStart + statusBarY, healthWidth, healthBarHeight);
+
+		if(powerValue<=25)
+			g.setColor(new Color(255, 255, 255,200));
+		else if(powerValue <=50)
+			g.setColor(new Color(255, 148, 103, 174));
+		else if(powerValue <=75)
+			g.setColor(new Color(255, 66, 66, 152));
+		else
+			g.setColor(new Color(255, 0, 0, 255));
+
+		g.fillRect(powerBarXStart + statusBarX, powerBarYStart + statusBarY, powerWidth, powerBarHeight);
 	}
 
 	private void updateAnimationTick() {
@@ -240,8 +276,6 @@ public class Player extends Entity {
 				state= IDLE;
 			}
 		}
-
-
 	}
 
 	public void finishShooting() {
@@ -384,7 +418,11 @@ public class Player extends Entity {
 	}
 
 	public void changePower(int value){
-		System.out.println("POWER");
+		powerValue += value;
+		if(powerValue >= powerMaxValue)
+			powerValue = powerMaxValue;
+		else if(powerValue <= 0)
+			powerValue =0;
 	}
 
 	private void loadAnimations() {
@@ -421,7 +459,11 @@ public class Player extends Entity {
 		this.attacking = attacking;
 	}
 	public void setShooting(boolean shooting){
-		this.shooting = shooting;
+		if (shooting && powerValue >= 50) {
+			this.shooting = shooting;
+		} else if (!shooting) {
+			this.shooting = shooting;
+		}
 //		System.out.println("Shooting set to: " + shooting);
 	}
 
@@ -450,7 +492,7 @@ public class Player extends Entity {
 		shooting = false;
 		state = IDLE;
 		currentHealth = maxHealth;
-
+		powerValue = powerMaxValue;
 		hitbox.x = x;
 		hitbox.y = y;
 		if(!IsEntityOnFloor(hitbox,lvlData))

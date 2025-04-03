@@ -171,7 +171,7 @@ public class Playing extends State implements Statemethods {
 		g2d.setTransform(originalTransform);
 
 		if(paused){
-			g.setColor(new Color(0,0,0,200));
+			g.setColor(new Color(0, 0, 0,200));
 			g.fillRect(0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT);
 			pauseOverlay.draw(g);
 		}
@@ -235,28 +235,28 @@ public class Playing extends State implements Statemethods {
 			gameOverOverlay.keyPressed(e);
 		else
 			switch (e.getKeyCode()) {
-			case KeyEvent.VK_A:
-				player.setFacingRight(false);
-				player.setLeft(true);
-				break;
-			case KeyEvent.VK_D:
-				player.setFacingRight(true);
-				player.setRight(true);
-				break;
-			case KeyEvent.VK_W:
-			case KeyEvent.VK_SPACE:
-				player.setJump(true);
-				break;
-			case KeyEvent.VK_ESCAPE:
-				paused = !paused;
-				break;
-			case KeyEvent.VK_M:
-				if(!player.isShooting()){
-					player.setShooting(true);
-					player.shootProjectile();
-				}
+				case KeyEvent.VK_A:
+					player.setFacingRight(false);
+					player.setLeft(true);
+					break;
+				case KeyEvent.VK_D:
+					player.setFacingRight(true);
+					player.setRight(true);
+					break;
+				case KeyEvent.VK_W:
+				case KeyEvent.VK_SPACE:
+					player.setJump(true);
+					break;
+				case KeyEvent.VK_ESCAPE:
+					paused = !paused;
+					break;
+				case KeyEvent.VK_Q:
+					if(!player.isShooting()){
+						player.setShooting(true);
+						player.updateSpells();
+					}
 
-				break;
+					break;
 			}
 	}
 
@@ -264,18 +264,18 @@ public class Playing extends State implements Statemethods {
 	public void keyReleased(KeyEvent e) {
 		if(!gameOver)
 			switch (e.getKeyCode()) {
-			case KeyEvent.VK_A:
-				player.setLeft(false);
-				break;
-			case KeyEvent.VK_D:
-				player.setRight(false);
-				break;
-			case KeyEvent.VK_W:
-			case KeyEvent.VK_SPACE:
-				player.setJump(false);
-			case KeyEvent.VK_M:
-				player.setShooting(false);
-				break;
+				case KeyEvent.VK_A:
+					player.setLeft(false);
+					break;
+				case KeyEvent.VK_D:
+					player.setRight(false);
+					break;
+				case KeyEvent.VK_W:
+				case KeyEvent.VK_SPACE:
+					player.setJump(false);
+				case KeyEvent.VK_Q:
+					player.setShooting(false);
+					break;
 			}
 
 	}
@@ -303,7 +303,7 @@ public class Playing extends State implements Statemethods {
 		if (!gameOver) {
 			if (paused)
 				pauseOverlay.mouseReleased(e);
-			 else if (lvlCompleted)
+			else if (lvlCompleted)
 				levelCompletedOverlay.mouseReleased(e);
 		} else{
 			gameOverOverlay.mouseReleased(e);
@@ -319,7 +319,7 @@ public class Playing extends State implements Statemethods {
 				levelCompletedOverlay.mouseMoved(e);
 		}else {
 			gameOverOverlay.mouseMoved(e);
-			}
+		}
 	}
 
 	public void setLevelCompleted(boolean levelCompleted) {
