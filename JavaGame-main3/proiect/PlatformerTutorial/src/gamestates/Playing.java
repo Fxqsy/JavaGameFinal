@@ -3,6 +3,7 @@ package gamestates;
 import java.awt.*;
 import java.awt.event.KeyEvent;
 import java.awt.event.MouseEvent;
+import java.awt.geom.AffineTransform;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.Random;
@@ -42,6 +43,13 @@ public class Playing extends State implements Statemethods {
 
 	private boolean gameOver = false;
 	private boolean lvlCompleted =false;
+
+	private boolean playerDying = false;
+
+	private float currentZoom = 1.0f;
+	private float targetZoom = 1.0f;
+	private final float ZOOM_SPEED = 0.05f;
+	private final float DEATH_ZOOM_LEVEL = 4.0f;
 
 	public Playing(Game game) {
 		super(game);
@@ -90,23 +98,32 @@ public class Playing extends State implements Statemethods {
 	public void update() {
 		if(paused){
 			pauseOverlay.update();
-
 		}
 		else if(lvlCompleted){
 			levelCompletedOverlay.update();
+		}else if(gameOver){
+			gameOverOverlay.update();
 		}
-		else if(!gameOver){
+		else if(playerDying){
+			targetZoom = DEATH_ZOOM_LEVEL;
+			player.update();
+		}
+		else{
+			targetZoom = 1.0f;
 			levelManager.update();
 			objectManager.update(levelManager.getCurrentLevel().getLevelData(), player);
 			player.update();
 			player.updateSpells();
 			enemyManager.update(levelManager.getCurrentLevel().getLevelData(), player);
-//			objectManager.checkSpellsHit();
 			objectManager.updateSpells(levelManager.getCurrentLevel().getLevelData());
 
 			checkClosetoBorder();
 		}
-
+		if (Math.abs(currentZoom - targetZoom) > 0.01f) {
+			currentZoom += (targetZoom - currentZoom) * ZOOM_SPEED;
+		} else {
+			currentZoom = targetZoom;
+		}
 
 	}
 
@@ -128,6 +145,19 @@ public class Playing extends State implements Statemethods {
 
 	@Override
 	public void draw(Graphics g) {
+		Graphics2D g2d = (Graphics2D) g;
+		AffineTransform originalTransform = g2d.getTransform();
+
+		// Apply zoom transformation centered on player
+		if (currentZoom != 1.0f) {
+			int playerScreenX = (int)(player.getHitbox().x - xLvlOffset);
+			int playerScreenY = (int)player.getHitbox().y;
+
+			g2d.translate(playerScreenX, playerScreenY);
+			g2d.scale(currentZoom, currentZoom);
+			g2d.translate(-playerScreenX, -playerScreenY);
+		}
+
 		g.drawImage(backgroundImg, 0, 0, Game.GAME_WIDTH, Game.GAME_HEIGHT, null);
 
 		drawClouds(g);
@@ -137,6 +167,8 @@ public class Playing extends State implements Statemethods {
 		enemyManager.draw(g, xLvlOffset);
 		objectManager.draw(g,xLvlOffset);
 		player.drawSpell(g,xLvlOffset);
+
+		g2d.setTransform(originalTransform);
 
 		if(paused){
 			g.setColor(new Color(0,0,0,200));
@@ -148,6 +180,8 @@ public class Playing extends State implements Statemethods {
 		}else if(lvlCompleted)
 			levelCompletedOverlay.draw(g);
 
+
+		g2d.setTransform(originalTransform);
 	}
 
 	private void drawClouds(Graphics g) {
@@ -162,11 +196,15 @@ public class Playing extends State implements Statemethods {
 		gameOver = false;
 		paused = false;
 		lvlCompleted = false;
+		playerDying = false;
 		player.resetAll();
 		player.clearSpells();
 		resetJumpBoost();
 		enemyManager.resetAllEnemies();
 		objectManager.resetAllObjects();
+
+		currentZoom = 1.0f;
+		targetZoom = 1.0f;
 	}
 
 	public void setGameOver(boolean gameOver){
@@ -255,6 +293,8 @@ public class Playing extends State implements Statemethods {
 				pauseOverlay.mousePressed(e);
 			else if(lvlCompleted)
 				levelCompletedOverlay.mousePressed(e);
+		} else{
+			gameOverOverlay.mousePressed(e);
 		}
 	}
 
@@ -265,6 +305,8 @@ public class Playing extends State implements Statemethods {
 				pauseOverlay.mouseReleased(e);
 			 else if (lvlCompleted)
 				levelCompletedOverlay.mouseReleased(e);
+		} else{
+			gameOverOverlay.mouseReleased(e);
 		}
 	}
 
@@ -275,11 +317,15 @@ public class Playing extends State implements Statemethods {
 				pauseOverlay.mouseMoved(e);
 			else if (lvlCompleted)
 				levelCompletedOverlay.mouseMoved(e);
-		}
+		}else {
+			gameOverOverlay.mouseMoved(e);
+			}
 	}
 
 	public void setLevelCompleted(boolean levelCompleted) {
 		this.lvlCompleted = levelCompleted;
+		if(levelCompleted)
+			game.getAudioPlayer().lvlCompleted();
 	}
 
 	public void setMaxLvlOffset(int lvlOffset) {
@@ -318,4 +364,7 @@ public class Playing extends State implements Statemethods {
 		player.activateJumpBoost(0);
 	}
 
+	public void setPlayerDying(boolean playerDying) {
+		this.playerDying = playerDying;
+	}
 }

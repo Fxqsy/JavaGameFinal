@@ -23,16 +23,16 @@ public class Skelly extends Enemy {
     }
 
     public void update(int[][] lvlData, Player player) {
-        if (dead || !active) return;  // Also check active status
+        if (dead || !active)
+            return;
 
         updateBehavior(lvlData, player);
         updateAniTick();
         updateAttackBox();
 
-        // Check if death animation completed
         if (dying && aniIndex >= GetSpriteAmount(enemyType, state) - 1) {
             dead = true;
-            active = false;  // Set to inactive when dead
+            active = false;
         }
     }
 

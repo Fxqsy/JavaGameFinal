@@ -7,10 +7,7 @@ import java.io.InputStream;
 import java.net.URISyntaxException;
 import java.net.URL;
 
-
 import javax.imageio.ImageIO;
-
-
 
 public class LoadSave {
 
@@ -34,7 +31,8 @@ public class LoadSave {
 	public static final String CANNON_ATLAS = "cannon_atlas.png";
 	public static final String CANNON_BALL = "ball.png";
 	public static final String FIREBALL = "fireball.png";
-
+	public static final String DEATH_SCREEN = "death_screen.png";
+	public static final String OPTIONS_MENU = "options_background.png";
 
 
 

@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 
 import Objects.Projectile;
+import audio.AudioPlayer;
 import gamestates.Playing;
 import main.Game;
 import utilz.LoadSave;
@@ -66,7 +67,7 @@ public class Player extends Entity {
 		super(x, y, width, height);
 		this.playing = playing;
 		this.state = IDLE;
-		this.maxHealth = 1000;
+		this.maxHealth = 10;
 		this.currentHealth = maxHealth;
 		this.walkSpeed = Game.SCALE * 1.0f;
 		loadAnimations();
@@ -90,7 +91,21 @@ public class Player extends Entity {
 		updateHealthBar();
 
 		if(currentHealth <= 0){
-			playing.setGameOver(true);
+			if(state != DEAD){
+				state = DEAD;
+				aniTick = 0;
+				aniIndex = 0;
+				playing.setPlayerDying(true);
+				playing.getGame().getAudioPlayer().playEffect(AudioPlayer.DIE);
+			} else if(aniIndex == GetSpriteAmount(DEAD) - 1 && aniTick >= ANI_SPEED - 1){
+				playing.setGameOver(true);
+				playing.getGame().getAudioPlayer().stopSong();
+				playing.getGame().getAudioPlayer().playEffect(AudioPlayer.GAMEOVER);
+
+
+			}else
+				updateAnimationTick();
+
 			return;
 		}
 		if (jumpBoostActive && System.currentTimeMillis() > jumpBoostEndTime) {
@@ -109,8 +124,10 @@ public class Player extends Entity {
 		if(attacking)
 			checkAttack();
 
-		if(state == SHOOT_PROJ){
+		if(shooting){
 			finishShooting();
+			playing.getGame().getAudioPlayer().playAttackRanged();
+
 		}
 
 		updateAnimationTick();
@@ -127,7 +144,7 @@ public class Player extends Entity {
 			state=SHOOT_PROJ;
 
 			int dir = isFacingRight() ? 1 : -1;
-			int projectileX = (int) (hitbox.x + (dir == 1 ? hitbox.width / 2 - 25 : -hitbox.width / 2));
+			int projectileX = (int) (hitbox.x + (dir == 1 ? hitbox.width / 2 - 60 : -hitbox.width / 2 + 60));
 			int projectileY = (int) (hitbox.y + height / 3);
 			spells.add(new Projectile(projectileX, projectileY, dir));
 		}
@@ -147,6 +164,7 @@ public class Player extends Entity {
 		attackChecked = true;
 		playing.checkEnemyHit(attackBox);
 		playing.checkObjectHit(attackBox);
+		playing.getGame().getAudioPlayer().playAttackSound();
 
 	}
 
@@ -159,7 +177,6 @@ public class Player extends Entity {
 	}
 
 	public void drawSpell(Graphics g, int xLvlOffset) {
-
 		ArrayList<Projectile> spellsToDraw = new ArrayList<>(spells);
 		int dir = isFacingRight() ? 1 : -1;
 		for (Projectile p : spellsToDraw) {
@@ -228,7 +245,7 @@ public class Player extends Entity {
 	}
 
 	public void finishShooting() {
-		if (state == SHOOT_PROJ && aniIndex >= GetSpriteAmount(SHOOT_PROJ) - 1) {
+		if (shooting && aniIndex >= GetSpriteAmount(SHOOT_PROJ) - 1) {
 			shooting = false;
 		}
 	}
@@ -330,6 +347,9 @@ public class Player extends Entity {
 	private void jump() {
 		if (inAir)
 			return;
+
+		playing.getGame().getAudioPlayer().playEffect(AudioPlayer.JUMP);
+
 		inAir = true;
 		if(!jumpBoostActive)
 			airSpeed = jumpSpeed;
@@ -416,8 +436,6 @@ public class Player extends Entity {
 	public boolean isFacingRight(){
 		return facingRight;
 	}
-
-
 
 	public void setJump(boolean jump) {
 		this.jump = jump;

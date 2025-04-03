@@ -92,8 +92,9 @@ public class Constants {
 						case IDLE:
 							return 8;
 						case RUNNING:
-						case ATTACK:
 							return 10;
+						case ATTACK:
+							return 11;
 						case HIT:
 							return 5;
 						case DEAD:
@@ -115,7 +116,7 @@ public class Constants {
 		public static int GetEnemyDmg(int enemy_type){
 			switch(enemy_type){
 				case SKELLY:
-					return 1;
+					return 5;
 				default:
 					return 1;
 			}

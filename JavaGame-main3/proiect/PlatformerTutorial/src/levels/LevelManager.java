@@ -5,7 +5,9 @@ import java.awt.image.BufferedImage;
 import java.nio.BufferOverflowException;
 import java.util.ArrayList;
 
+import audio.AudioPlayer;
 import gamestates.Gamestate;
+import gamestates.Menu;
 import main.Game;
 import utilz.LoadSave;
 
@@ -29,6 +31,7 @@ public class LevelManager {
 			lvlIndex = 0; //daca vrei cutscene cand termini jocu aici vine
 			System.out.println("no more levels");
 			Gamestate.state = Gamestate.MENU;
+
 		}
 
 		Level newLevel = levels.get(lvlIndex);
@@ -76,4 +79,7 @@ public class LevelManager {
 		return levels.size();
 	}
 
+	public int getLvlIndex(){
+		return lvlIndex;
+	}
 }

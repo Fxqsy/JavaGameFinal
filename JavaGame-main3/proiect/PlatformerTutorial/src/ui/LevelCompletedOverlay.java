@@ -1,25 +1,26 @@
 package ui;
 
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.event.MouseEvent;
+import java.awt.image.BufferedImage;
+
+import audio.AudioPlayer;
 import gamestates.Gamestate;
 import gamestates.Playing;
 import main.Game;
 import utilz.LoadSave;
-
-import java.awt.*;
-import java.awt.event.MouseEvent;
-import java.awt.image.BufferedImage;
-
 import static utilz.Constants.UI.URMButtons.*;
 
 public class LevelCompletedOverlay {
 
     private Playing playing;
-    private UrmButton menu,next;
+    private UrmButton menu, next;
     private BufferedImage img;
     private int bgX, bgY, bgW, bgH;
 
-    public LevelCompletedOverlay(Playing playing){
-        this.playing=playing;
+    public LevelCompletedOverlay(Playing playing) {
+        this.playing = playing;
         initImg();
         initButtons();
     }
@@ -34,11 +35,10 @@ public class LevelCompletedOverlay {
 
     private void initImg() {
         img = LoadSave.GetSpriteAtlas(LoadSave.COMPLETED_IMG);
-        bgW = (int)(img.getWidth() * Game.SCALE);
-        bgH = (int)(img.getHeight() * Game.SCALE);
+        bgW = (int) (img.getWidth() * Game.SCALE);
+        bgH = (int) (img.getHeight() * Game.SCALE);
         bgX = Game.GAME_WIDTH / 2 - bgW / 2;
-        bgY = (int)(75*Game.SCALE);
-
+        bgY = (int) (75 * Game.SCALE);
     }
 
     public void draw(Graphics g) {
@@ -73,12 +73,14 @@ public class LevelCompletedOverlay {
         if (isIn(menu, e)) {
             if (menu.isMousePressed()) {
                 playing.resetAll();
-                Gamestate.state = Gamestate.MENU;
+                playing.setGameState(Gamestate.MENU);
             }
         } else if (isIn(next, e))
-            if (next.isMousePressed())
+            if (next.isMousePressed()) {
                 playing.loadNextLevel();
+                playing.getGame().getAudioPlayer().setLevelSong(playing.getLevelManager().getLvlIndex());
 
+            }
         menu.resetBools();
         next.resetBools();
     }
@@ -89,4 +91,5 @@ public class LevelCompletedOverlay {
         else if (isIn(next, e))
             next.setMousePressed(true);
     }
+
 }
